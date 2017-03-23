@@ -1,0 +1,137 @@
+print("Load item")
+-- Player Interface (peripheral++)
+local pi=peripheral.find("playerInterfacePPP")
+local chat=peripheral.find("chatBox")
+-- config coffre
+pi.setOutputSide("WEST")
+local joueur='Adsl_Houba'
+local moi=pi.getPlayerInv(joueur)
+
+local items={}
+-- Function chargement d'une variable sauvegarder
+function charge(nom)
+	file=fs.open(nom,"r")
+	tmp=file.readAll()
+	file.close()
+	return tmp
+end
+-- Function de sauvegarde d'une variable
+function memoW(nom,info)
+	file=fs.open(nom,"w")
+	file.write(info)
+	file.close()
+end
+items=textutils.unserialize(charge("clean/items"))
+
+
+-- attente reponse joueur
+function attente()
+	while true do
+		local event, player, arg = os.pullEvent("command") -- \
+		if player==joueur then
+			if arg[1]=='o' or  arg[1]=='n' or arg[1]=='q' then
+				return arg[1]
+			end
+		end
+	end
+end
+function viderItem(iName)
+	for iv=0, 39 do
+		local info=moi.getStackInSlot(iv)
+		if type(info)=='table' then
+			if iName==info.name then 
+				moi.retrieveFromSlot(iv,info.amount)
+			end
+		end
+	end
+end
+
+
+
+function vide()
+	particule.couleur(255,0,150);
+	local listeQuestion={}
+	local texteQuestion=''
+	for iv=0, 39 do
+		local info=moi.getStackInSlot(iv)
+		if type(info)=='table' then
+			if type(items[info.name])=='nil' then
+				if type(listeQuestion[info.name])=='nil' then
+					listeQuestion[info.name]=info.displayName
+					if texteQuestion=='' then 
+						texteQuestion=info.displayName
+					else 
+						texteQuestion=texteQuestion..', '..info.displayName
+					end
+				end
+			elseif items[info.name]==false then
+				moi.retrieveFromSlot(iv,info.amount)
+			end
+		end
+	end
+	if texteQuestion~='' then
+		chat.tell(joueur,'Doit je vous laisser : '..texteQuestion.. ' ? \\o => oui, tous \\n => non, tous \\q => Question',9999,false,'Inventaire')
+		texte=attente()
+		if texte=='o' then
+			table.foreach(listeQuestion, function(iName,data)
+				items[iName]=true				
+			end)				
+			memoW("clean/items",textutils.serialize(items))
+		elseif texte=='n' then
+			table.foreach(listeQuestion, function(iName,data)
+				items[iName]=false
+				viderItem(iName)
+			end)				
+			memoW("clean/items",textutils.serialize(items))
+		else
+			table.foreach(listeQuestion, function(iName,nomFr)
+				chat.tell(joueur,'Doit je vous laisser '..nomFr.. ' ? \\o => OUI \\n => NON',9999,false,'Alfred')
+				texte=attente()		
+				if texte=='o' then
+					items[iName]=true
+				else 
+					items[iName]=false
+					viderItem(iName)
+				end
+				memoW("clean/items",textutils.serialize(items))
+			end)
+		end
+		
+	end -- texteQuestion~=''
+	chat.tell(joueur,"J'ai finis de netoyer votre inventaire",9999,false,'Alfred')
+	particule.couleur(255,0,0);
+end
+
+function init() 
+	print("Go cleanr")
+	while true do
+		local event, player, arg = os.pullEvent("command") 
+		if player==joueur then
+			if arg[1]=='vide' then
+				vide()
+			elseif arg[1]=='ckoi' then
+				local info=moi.getStackInSlot(arg[2]-1)
+				chat.tell(joueur,'L\'item que vous avez dans votre slot '..arg[2]..' "'..info.displayName.. '" a comme code "'..info.name..'"',9999,false,'Alfred')
+				if items[info.name]==true then
+					chat.tell(joueur,'Je vous laisse toujours cette item',9999,false,'Alfred')
+				elseif items[info.name]==false then
+					chat.tell(joueur,'Je recupere cette item',9999,false,'Alfred')
+				else
+					chat.tell(joueur,'Je n\'ai pas de config pour cette item',9999,false,'Alfred')
+				end
+			elseif arg[1]=='garder' then
+				local info=moi.getStackInSlot(arg[2]-1)
+				chat.tell(joueur,'Tres bien, je vous laisse "'..info.displayName..'"',9999,false,'Alfred')
+				items[info.name]=true
+				memoW("items",textutils.serialize(items))
+			elseif arg[1]=='ranger' then
+				local info=moi.getStackInSlot(arg[2]-1)
+				chat.tell(joueur,'Tres bien, je rangerai "'..info.displayName..'"',9999,false,'Alfred')
+				items[info.name]=false
+				memoW("items",textutils.serialize(items))
+			end
+		else
+			chat.tell(player,'Bonjour '..player..', cette commande n\'est pas disponible pour vous',9999,false,'Alfred')
+		end
+	end
+end

@@ -1,0 +1,8 @@
+{
+  test3 = "left",
+  test5 = "Salut",
+  test6 = "no",
+  test2 = false,
+  test = 256,
+  test4 = "monitor_0",
+}

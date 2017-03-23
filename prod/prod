@@ -1,0 +1,309 @@
+-- Variable pour les slots
+local slot=1
+local totalItem=0
+local nom=''
+-- Variable statisque jamais reset
+local grTotal=0
+local grTotalItem={}
+-- Variable statistique pour le jour 
+local ptTotal=0
+local ptTotalItem={}
+local ptJour=0
+-- Ecran
+local ecran=peripheral.wrap("monitor_3")
+local coffre=peripheral.wrap("ender_chest_0")
+local ecran2=peripheral.wrap("monitor_4")
+ecran2.setTextScale(3)
+local selector=peripheral.wrap("openperipheral_selector_0")
+
+local items={}
+items['reeds']='Canne a sucre'
+items['wheat']='Ble'
+items['magicalcrops_MagicEssence']='Essence'
+items['magicalcrops_ModCropEssence']={}
+items['magicalcrops_ModCropEssence'][0]='Cuivre'
+items['magicalcrops_ModCropEssence'][2]='Argent'
+items['magicalcrops_ModCropEssence'][4]='Certus Quartz'
+items['magicalcrops_ModCropEssence'][8]='Aluminum'
+items['magicalcrops_ModCropEssence'][10]='Cobalt'
+items['magicalcrops_ModCropEssence'][11]='Ardite'
+items['magicalcrops_ModCropEssence'][13]='Platinum'
+items['magicalcrops_ModCropEssence'][17]='Rubber'
+items['magicalcrops_ModCropEssence'][27]='Sulfur'
+items['magicalcrops_CropEssence']={}
+items['magicalcrops_CropEssence'][1]='Redstone'
+items['magicalcrops_CropEssence'][2]='Glowstone'
+items['magicalcrops_CropEssence'][3]='Diamand'
+items['magicalcrops_CropEssence'][4]='Fer'
+items['magicalcrops_CropEssence'][5]='Or'
+items['magicalcrops_CropEssence'][6]='Lapis'
+items['magicalcrops_CropEssence'][7]='Blaze'
+items['magicalcrops_CropEssence'][8]='Emeraude'
+items['magicalcrops_CropEssence'][9]='Perle'
+items['magicalcrops_CropEssence'][10]='Obsidian'
+items['magicalcrops_CropEssence'][11]='Charbon'
+items['magicalcrops_CropEssence'][13]='Couleur'
+items['magicalcrops_CropEssence'][14]='Quartz Nether'
+items['magicalcrops_SoulEssence']={}
+items['magicalcrops_SoulEssence'][0]='XP'
+items['magicalcrops_SoulEssence'][1]='Poudre a canon'
+items['magicalcrops_SoulEssence'][2]='Magama'
+items['magicalcrops_SoulEssence'][3]='Os'
+items['magicalcrops_SoulEssence'][4]='Slim'
+items['magicalcrops_SoulEssence'][5]='Ficelle'
+items['magicalcrops_SoulEssence'][6]='Larme Ghast'
+items['magicalcrops_SoulEssence'][7]='Tete Wither'
+items['magicalcrops_ElementEssence']={}
+items['magicalcrops_ElementEssence'][0]='Eau'
+items['magicalcrops_ElementEssence'][1]='Feu'
+items['magicalcrops_ElementEssence'][2]='Terre'
+items['magicalcrops_ElementEssence'][3]='Air'
+
+-- itemsA Nom Ratio X Y id dmg
+local itemsA={
+	{'Canne a sucre',1,1,1},
+	{'Ble',1,1,2},
+	{'Essence',1,1,3},
+	{'Cuivre',1.5,1,4},
+	{'Argent',1,1,5},
+	{'Certus Quartz',0.5,1,6},
+	{'Aluminum',1.5,1,7},
+	{'Cobalt',0.5,1,8},
+	{'Ardite',0.5,1,9},
+	{'Platinum',0.25,1,10},
+	{'Rubber',1,1,11},
+	{'Sulfur',1.33,1,12},
+	{'Redstone',3,1,13},
+	{'Glowstone',1.5,1,14},
+	{'Diamand',0.125,1,15},
+	{'Fer',2,1,16},
+	{'Or',1.25,1,17},
+	{'Lapis',1.5,1,18},
+	{'Blaze',0.375,1,19},
+	{'Emeraude',0.125,1,20},
+	{'Perle',0.4,1,21},
+	{'Obsidian',1,1,22},
+	{'Charbon',1.5,1,23},
+	{'Couleur',2,1,24},
+	{'Quartz Nether',1.6,1,25},
+	{'XP',2.625,1,26},
+	{'Poudre a canon',3,1,27},
+	{'Os',3.33,1,28},
+	{'Slim',3,1,29},
+	{'Ficelle',2.66,1,30},
+	{'Larme Ghast',1,1,31},
+	{'Tete Wither',0.125,1,32},
+	{'Eau',1,1,33},
+	{'Feu',1,1,34},
+	{'Terre',1,1,35},
+	{'Air',1,1,36}
+}
+
+-- Function chargement d'une variable sauvegarder
+function charge(nom)
+	print("Charge ".."prod/"..nom)
+	file=fs.open("prod/"..nom,"r")
+	tmp=file.readAll()
+	file.close()
+	return tmp
+end
+-- Function de sauvegarde d'une variable
+function memoW(nom,info)
+	file=fs.open("prod/"..nom,"w")
+	file.write(info)
+	file.close()
+end
+-- Function d'ptTotalItemPrec du ligne sur le tableau
+function actuLigneAff(nom,div,x,y)
+	if (tostring(ptTotalItemPrec[nom])=='nil') then
+		ptTotalItemPrec[nom]=0
+	end
+	if (tostring(grTotalItem[nom])=='nil') then
+		ptTotalItemPrec[nom]=0
+	end
+	if y%2==0 then
+		ecran.setBackgroundColor(colors.black)
+	else
+		ecran.setBackgroundColor(colors.gray)
+	end
+	
+	ecran.setCursorPos(x,y+1)
+	ecran.write("                                    ")
+	ecran.setCursorPos(x,y+1)
+	ecran.write(nom)
+	
+	if div==1 then
+		chif=ptTotalItemPrec[nom]
+	else
+		chif=math.ceil(tonumber(ptTotalItemPrec[nom])*div)
+	end
+	chiffString=ahb.formatChiff(chif)
+	chiffStringTaille=string.len(chiffString)
+	ecran.setCursorPos(x+20-chiffStringTaille,y+1)
+	ecran.write(chiffString)
+	
+	if div==1 then
+		chif=grTotalItem[nom]
+	else
+		chif=math.ceil(tonumber(grTotalItem[nom])*div)
+	end
+	chiffString=ahb.formatChiff(math.ceil(chif/1000))
+	chiffStringTaille=string.len(chiffString)
+	ecran.setCursorPos(x+27-chiffStringTaille,y+1)
+	ecran.write(chiffString..'k')
+	
+	
+end
+-- generation du tableau
+function actuAff()
+	ecran.clear()
+	ecran.setCursorPos(3,1)
+	ecran.write('Nom')
+	local i=1
+	local derY=1
+	while itemsA[i] do
+		actuLigneAff(itemsA[i][1],itemsA[i][2],itemsA[i][3],itemsA[i][4])
+		if derY<itemsA[i][4]+1 then
+			derY=itemsA[i][4]+1
+		end
+		i=i+1
+	end
+	ecran.setCursorPos(2,derY+1)
+	ecran.write('Jour '..tostring(os.day()-1))
+	
+	chiffString=ahb.formatChiff(tonumber(ptTotalPrec))
+	chiffStringTaille=string.len(chiffString)
+	ecran.setCursorPos(21-chiffStringTaille,derY+1)
+	ecran.write(chiffString)
+	
+	chiffString=ahb.formatChiff(math.ceil(tonumber(grTotal)/1000))
+	chiffStringTaille=string.len(chiffString)
+	ecran.setCursorPos(28-chiffStringTaille,derY+1)
+	ecran.write(chiffString..'k')
+end
+
+-- Chargement des total à vie
+grTotal=charge("grTotal")
+grTotalItem=textutils.unserialize(charge("grTotalItem"))
+-- Chargement du jour en cours
+ptTotalItem=textutils.unserialize(charge("ptTotalItem"))
+ptJour=charge("ptJour")
+ptTotal=charge("ptTotal")
+-- Chargement du jour precedent
+ptTotalItemPrec=textutils.unserialize(charge("ptTotalItemPrec"))
+ptTotalPrec=charge("ptTotalPrec")
+
+local itemV2=textutils.unserialize(charge("itemV2"))
+
+actuAff()
+
+function verifCoffre()
+	while true do
+		coffre.condenseItems()
+		local stacks=coffre.getAllStacks()
+		for i=1, #stacks do
+			info=stacks[i].all()
+			totalItem=info.qty				
+			
+			if items[info.name] then
+				nom=''
+				if type(items[info.name])=='table' then
+					if items[info.name][info.dmg] then
+						nom=items[info.name][info.dmg]
+					else
+						print('Non configure '..slot..' #1/2 nom : '..info.name)
+						print('Non configure '..slot..' #2/2 damage : '..info.dmg)
+					end
+				else
+					nom=items[info.name]
+				end
+				if nom~='' then
+					grTotal=grTotal+totalItem
+					ptTotal=ptTotal+totalItem
+				
+					if ptTotalItem[nom] then
+						ptTotalItem[nom]=tonumber(ptTotalItem[nom])+totalItem
+					else
+						ptTotalItem[nom]=totalItem
+					end
+					if grTotalItem[nom] then
+						grTotalItem[nom]=tonumber(grTotalItem[nom])+totalItem
+					else
+						grTotalItem[nom]=totalItem
+					end
+					coffre.pushItem("WEST",i,info.qty)
+					
+				end
+			else
+				print('Non configure '..slot..' : '..info.name)
+			end			
+		end
+		slot=slot+1
+		
+		if tonumber(ptJour)~=tonumber(os.day()) then	
+			memoW("ptTotalItemPrec",textutils.serialize(ptTotalItem))
+			memoW("ptJour",os.day())
+			memoW("ptTotalPrec",ptTotal)
+			ptTotalItemPrec=ptTotalItem
+			ptTotalPrec=ptTotal		
+			actuAff()
+			ptJour=os.day()		
+			ptTotal=0
+			ptTotalItem={}
+		end
+		memoW("ptTotalItem",textutils.serialize(ptTotalItem))
+		memoW("grTotalItem",textutils.serialize(grTotalItem))
+		memoW("ptTotal",ptTotal)
+		memoW("grTotal",grTotal)
+		os.sleep(10)
+	end
+end
+function miniafficahge()
+	while true do
+		for i=1,#itemsA do
+			local nom2=itemsA[i][1]
+			
+			if itemV2[nom2]==nil then
+				ecran2.clear()
+				ecran2.setCursorPos(1,1)
+				ecran2.write(nom2)
+				selector.setSlot(1)
+				event, slot, side = os.pullEvent('slot_click')
+				itemV2[nom2]=selector.getSlot(1)
+				memoW("itemV2",textutils.serialize(itemV2))
+			else
+				selector.setSlot(1,itemV2[itemsA[i][1]])
+			end
+			ecran2.clear()
+			ecran2.setCursorPos(1,1)
+			
+			local div2=itemsA[i][2]
+			
+			if div2==1 then
+				chif=ptTotalItemPrec[nom2]
+			else
+				chif=math.ceil(tonumber(ptTotalItemPrec[nom2])*div2)
+			end
+			
+			chiffString=ahb.formatChiff(chif)
+			chiffStringTaille=string.len(chiffString)
+			ecran2.setCursorPos(1,1)
+			ecran2.write(chiffString)
+			
+			if div2==1 then
+				chif=grTotalItem[nom2]
+			else
+				chif=math.ceil(tonumber(grTotalItem[nom2])*div2)
+			end
+			chiffString=ahb.formatChiff(math.ceil(chif/1000))
+			chiffStringTaille=string.len(chiffString)
+			ecran2.setCursorPos(1,2)
+			ecran2.write(chiffString..'k')
+			
+			event, slot, side = os.pullEvent('slot_click')		
+		end
+	end
+end
+function init()
+	parallel.waitForAll(verifCoffre,miniafficahge)
+end

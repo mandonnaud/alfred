@@ -1,0 +1,112 @@
+local liste={
+	{
+		p='Matrice d\'induction_13',
+		nom='Laser'
+	},{
+		p='Matrice d\'induction_3',
+		nom='QG'
+	},{
+		p='Matrice d\'induction_4',
+		nom='Pierre'
+	},{
+		p='Matrice d\'induction_1',
+		nom='Mekanism'
+	},{
+		p='Matrice d\'induction_2',
+		nom='AE2'
+	},{
+		p='Matrice d\'induction_12',
+		nom='Reacteur'
+	},{
+		p='Matrice d\'induction_0',
+		nom='Botania'
+	},{
+		p='Matrice d\'induction_8',
+		nom='Galacticraft'
+	}
+}
+local ppPrincipal=peripheral.wrap('Matrice d\'induction_14')
+
+
+local ecran=peripheral.wrap("monitor_0")
+ecran.setTextScale(2)
+ecran.clear()
+ecran.setCursorPos(5,2)
+ecran.write("Consommation")
+local ecran2=peripheral.wrap("monitor_2")
+ecran2.setTextScale(1)
+local chatbox=peripheral.find("chatBox")
+
+local derPost=0
+for i, d in pairs(liste) do 	
+	liste[i].pp=peripheral.wrap(liste[i].p)
+	
+	liste[i].win1=window.create(ecran,1,i+3,21,1,true)
+	liste[i].win2=window.create(ecran,11,i+3,10,1,true)
+	if i%2==0 then
+		liste[i].win1.setBackgroundColor(colors.blue)
+		liste[i].win2.setBackgroundColor(colors.blue)
+	else 
+		liste[i].win1.setBackgroundColor(colors.lightBlue)
+		liste[i].win2.setBackgroundColor(colors.lightBlue)
+	end
+	liste[i].win1.clear()
+	liste[i].win1.setCursorPos(2,1)
+	liste[i].win1.write(liste[i].nom)
+	
+	derPost=i
+end
+
+ecran.setCursorPos(2,derPost+4)
+ecran.write("Total")
+local winTotal=window.create(ecran,11,derPost+4,10,1,true)
+
+ecran.setCursorPos(6,derPost+6)
+ecran.write("Production")
+local winProduction=window.create(ecran,11,derPost+8,10,1,true)
+
+function init()
+	while true do
+		for i, d in pairs(liste) do
+			if liste[i].pp.getOutput()~='Unformed.' then
+				chiffString=ahb.formatChiff(liste[i].pp.getOutput()*0.4)
+				chiffStringTaille=string.len(chiffString)
+				liste[i].win2.clear()	
+				liste[i].win2.setCursorPos(10-chiffStringTaille,1)
+				liste[i].win2.write(chiffString)
+			end
+		end
+		if ppPrincipal.getOutput()~='Unformed.' then
+			totalString=ahb.formatChiff(ppPrincipal.getOutput()*0.4)
+			totalStringTaille=string.len(totalString)
+			winTotal.clear()
+			winTotal.setCursorPos(10-totalStringTaille,1)
+			winTotal.write(totalString)
+		
+			totalString=ahb.formatChiff(ppPrincipal.getInput()*0.4)
+			totalStringTaille=string.len(totalString)
+			winProduction.clear()
+			winProduction.setCursorPos(10-totalStringTaille,1)
+			winProduction.write(totalString)
+			
+			if ppPrincipal.getInput()<(ppPrincipal.getOutput()*0.9) then
+				ecran2.setBackgroundColor(colors.red)
+				pourc=-1*math.ceil(ppPrincipal.getInput()/ppPrincipal.getOutput()*100)
+				chatbox.say('Probleme d\'energie',9999,false,'Surveillance reacteur')
+			else
+				pourc=math.ceil(ppPrincipal.getOutput()/ppPrincipal.getInput()*100)
+				ecran2.setBackgroundColor(colors.green)			
+			end		
+			
+			ecran2.clear()
+			ecran2.setCursorPos(1,2)
+			ecran2.write('Entrer :  '..math.ceil(ppPrincipal.getInput()*4/10000)..'k RF/t')
+			ecran2.setCursorPos(1,3)
+			ecran2.write('Sortie :  '..math.ceil(ppPrincipal.getOutput()*4/10000)..'k RF/t '..pourc..'%')
+			ecran2.setCursorPos(1,4)	
+			ecran2.write('Stockage :  '..math.ceil((ppPrincipal.getEnergy()*4)/10000000000)..'G RF '..math.ceil(ppPrincipal.getEnergy()/ppPrincipal.getMaxEnergy()*100)..'%')
+			-- maxEnergy
+		end
+		os.sleep(5)
+	end
+end

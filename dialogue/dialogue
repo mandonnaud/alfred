@@ -1,0 +1,54 @@
+local chat=peripheral.find("chatBox")
+local listeCommand={
+	["vide"]="\\vide - Je vide votre inventaire l'inventaire",
+	["ckoi"]="\\ckoi NUM - Je vous donne les infos de rangement sur l'item dans le slot NUM de la barre",
+	["garder"]="\\garder NUM - Change la config en garder de l'item dans le slot NUM de la barre",
+	["ranger"]="\\ranger NUM - Change la config en ranger de l'item dans le slot NUM de la barre",
+	["nuit"]="\\nuit on|off - Change la config pour autorisé la nuit",
+	["time"]="\\time 0|NOM - Je modifie le temps jusqu'au moment demander",
+	["reboot"]="\\reboot - Me fait redemarer",
+	["o"]="Reponse à l'ordi",
+	["n"]="Reponse à l'ordi",
+	["q"]="Reponse à l'ordi",
+	["help"]="Affichiger des infos sur la fonction"
+}
+function init()
+	while true do
+		local event, player, args = os.pullEvent("command") 
+		if args[1]=="help" then
+			if listeCommand[args[2]] then
+				chat.tell(player,listeCommand[args[2]],9999,false,'Alfred')
+			else
+				chat.tell(player,"Cette commande n'existe pas",9999,false,'Alfred')
+			end
+		elseif args[1]=="reboot" then
+			os.reboot()
+		elseif listeCommand[args[1]] then
+		else
+			texte=""
+			for k,v in pairs(listeCommand) do
+				if not(texte=="") then
+					texte=texte..", "
+				end
+				texte=texte..k
+			end
+			chat.tell(player,"Je ne connais pas cette commande, je vais vous donnez toutes les commandes",9999,false,'Alfred')
+			chat.tell(player,texte,9999,false,'alfred')
+		end
+	end
+end
+function init2()
+	chat.say("Bonjour, je suis operationnel",9999,false,'Alfred')
+	while true do
+		local event, player, msg = os.pullEvent("chat") 
+		particule.couleur(0,0,255);
+		tmp=http.post("http://www.adslhouba.fr/_comment/albert.php","pseudo="..player.."&msg="..msg)
+		if tmp==nil then
+			chat.say("Je n'ai pas acces a internet",9999,false,'Alfred')
+		else
+			donne=tmp.readAll()
+			chat.say(tostring(donne),9999,false,'Alfred')
+		end
+		particule.couleur(255,0,0);
+	end
+end

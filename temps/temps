@@ -1,0 +1,119 @@
+local chatbox=peripheral.find("chatBox")
+local modNuit='off'
+local ecran=peripheral.wrap("monitor_5")
+ecran.setTextScale(4)
+ecran.setBackgroundColor(colors.green)
+albert.reds("bottom",colors.green,false)
+local encours=false
+local config={
+	debutNuit=19,
+	finNuit=6,
+	preTime={
+		nuit=20,
+		matin=5,
+		soir=18,
+		midi=12
+	}
+}
+
+function calcul(debut,jusqua,letime)
+	if debut>jusqua then
+		print(letime..'>'..debut..' or '..letime..'<'..jusqua)
+		return letime>debut or letime<jusqua  
+	else 
+		print(letime..'>'..debut..' and '..letime..'<'..jusqua)
+		return letime>debut and letime<jusqua 
+	end
+end
+function avanceTemps(jusqua,ignoreModNuit)
+	-- securite une seul modification temporel
+	if encours==false then
+		encours=true
+		
+		-- Enregistrement du debut
+		letime=os.time()
+		debut=letime-0.1
+		
+		ecran.setBackgroundColor(colors.yellow)
+		chatbox.say('J\'avance le temps jusqu\'a '..jusqua..'h',9999,false,'Alfred')
+		particule.couleur(255,200,0);
+		albert.reds("bottom",colors.green,true)
+		while ( calcul(debut,jusqua,letime) and (ignoreModNuit or modNuit=='off') ) do		
+			os.sleep(1)
+			letime=os.time()
+		end
+		albert.reds("bottom",colors.green,false)
+		ecran.setBackgroundColor(colors.green)
+		particule.couleur(255,0,0);
+		encours=false
+	else
+		chatbox.say('Je modifie deja le temps',9999,false,'Alfred')	
+	end
+end
+function horloge()
+	while true do
+		ecran.clear()
+		ecran.setCursorPos(1,1)
+		local temp=os.time()
+		local heure=math.floor(temp)
+		local minute=math.floor((temp-heure)*60)
+		if minute<10 then
+			minute='0'..minute
+		end
+		if heure<10 then
+			heure='0'..heure
+		end
+		ecran.write(heure..'h'..minute)
+		os.sleep(1)
+	end
+end
+function gestionTemps()
+	while true do		
+		if modNuit=='off' then
+			letime=os.time()
+			if letime>config.debutNuit or letime<config.finNuit then
+				avanceTemps(config.finNuit,false)
+			end
+		end
+		os.sleep(20)
+	end
+end
+function gestionCommande()
+	while true do
+		local event, player, args = os.pullEvent("command")
+		
+		if args[1]=='nuit' then
+			if args[2]=='on' then
+				modNuit='on'
+				chatbox.say('Je laisserez la nuit',9999,false,'Alfred')	
+			elseif args[2]=='off' then
+				modNuit='off'
+				chatbox.say('Je passerai les nuits',9999,false,'Alfred')	
+			else
+				if modNuit=='off' then
+					chatbox.say('Je passe les nuits',9999,false,'Alfred')	
+				else
+					chatbox.say('Je laisse les nuits',9999,false,'Alfred')	
+				end
+			end
+		elseif args[1]=='time' then
+			verChiffre=tonumber(args[2])
+			if verChiffre==nil then
+				if config.preTime[args[2]] then
+					avanceTemps(config.preTime[args[2]],true)
+				else
+					liste=''
+					table.foreach(config.preTime,function(nom,temp)
+						liste=liste..' '..nom
+					end)
+					chatbox.say('Je ne connais pas ce moment de la journé, vous pouvez choisir : '..liste,9999,false,'Alfred')	
+				end
+			else
+				avanceTemps(verChiffre,true)			
+			end			
+		end
+	end
+end
+function init()
+	parallel.waitForAll(gestionTemps,gestionCommande,horloge)
+end

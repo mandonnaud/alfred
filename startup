@@ -1,0 +1,11 @@
+os.loadAPI("ahb")
+os.loadAPI("particule")
+os.loadAPI("albert")
+os.loadAPI("clean/clean")
+os.loadAPI("energie/energie")
+os.loadAPI("prod/prod")
+os.loadAPI("temps/temps")
+os.loadAPI("dialogue/dialogue")
+
+
+parallel.waitForAll(clean.init,energie.init,prod.init,temps.init,dialogue.init,dialogue.init2)

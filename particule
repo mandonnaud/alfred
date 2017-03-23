@@ -1,0 +1,25 @@
+local generateur=ahb.addPeripheral("particle_generator_0")
+local actuelR=255
+local actuelV=0
+local actuelB=0
+local frames=10
+function couleur(r,v,b)
+	
+    generateur.pp.setGeneratorProperty("red",r)
+    generateur.pp.setGeneratorProperty("green",v)
+    generateur.pp.setGeneratorProperty("blue",b)
+	
+	local etapeR=(actuelR-r)/frames
+	local etapeV=(actuelV-v)/frames
+	local etapeB=(actuelB-b)/frames
+	
+	for i=1,frames do 
+		actuelR=actuelR-etapeR
+		actuelV=actuelV-etapeV
+		actuelB=actuelB-etapeB
+		generateur.pp.setGeneratorProperty("beam_red",actuelR)
+		generateur.pp.setGeneratorProperty("beam_green",actuelV)
+		generateur.pp.setGeneratorProperty("beam_blue",actuelB)
+		os.sleep(0.1)
+	end   
+end

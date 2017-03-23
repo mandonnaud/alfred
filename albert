@@ -1,0 +1,40 @@
+local etats={
+	front={},
+	back={},
+	left={},
+	right={},
+	top={},
+	bottom={}
+}
+for side,tab in pairs(etats) do
+	etats[side]={
+		[colors.white]=false,
+		[colors.orange]=false,
+		[colors.magenta]=false,
+		[colors.lightBlue]=false,
+		[colors.yellow]=false,
+		[colors.lime]=false,
+		[colors.pink]=false,
+		[colors.gray]=false,
+		[colors.lightGray]=false,
+		[colors.cyan]=false,
+		[colors.purple]=false,
+		[colors.blue]=false,
+		[colors.brown]=false,
+		[colors.green]=false,
+		[colors.red]=false,
+		[colors.black]=false
+	}
+end
+function reds(side,couleur,etat)
+	print("red")
+	etats[side][couleur]=etat;
+	total=0
+	for couleur,etat in pairs(etats[side]) do
+		if etat then
+			total=total+couleur
+		end
+	end
+	redstone.setBundledOutput(side,total)
+end
+print("Chargement de fonction d albert")
